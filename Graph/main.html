@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>GraphQL Game Reviews</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    .game { margin-bottom: 30px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; }
+    .title { font-weight: bold; font-size: 18px; }
+    .platforms { font-style: italic; color: #555; }
+    .reviews { margin-top: 10px; }
+    .review { margin-left: 15px; color: #333; }
+  </style>
+</head>
+<body>
+  <h1>🎮 Games and Reviews</h1>
+  <div id="app">Loading...</div>
+
+  <script>
+    const query = `
+      query {
+  games {
+    id
+    title
+    platform
+  }
+  reviews {
+    content
+    rating
+    game {
+        id
+        title
+    }
+  }
+}
+    `;
+
+    fetch('http://localhost:4000', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({ query }),
+})
+
+  .then(res => res.json())
+      .then(res => {
+        const { games, reviews } = res.data;
+        const app = document.getElementById("app");
+        app.innerHTML = ""; // پاک کردن "Loading..."
+
+        games.forEach(game => {
+          const gameDiv = document.createElement("div");
+          gameDiv.className = "game";
+
+          const title = document.createElement("div");
+          title.className = "title";
+          title.textContent = game.title;
+
+          const platforms = document.createElement("div");
+          platforms.className = "platforms";
+
+          platforms.textContent = `Platforms: ${game.platform.join(", ")}`;
+
+
+          const reviewList = document.createElement("div");
+
+          reviewList.className = "reviews";
+          const matchingReviews = reviews.filter(r => r.game.id == game.id);
+          matchingReviews.forEach(review => {
+              const r = document.createElement("div");
+              r.textContent = `- ${review.content} (Rating: ${review.rating}/10)`;
+    
+            reviewList.appendChild(r);
+          });
+
+        
+
+          gameDiv.appendChild(title);
+          gameDiv.appendChild(platforms);
+          gameDiv.appendChild(reviewList);
+          app.appendChild(gameDiv);
+        });
+      })
+      .catch(err => {
+        document.getElementById("app").textContent = "Error loading data.";
+        console.error(err);
+      });
+  </script>
+</body>
+</html>
